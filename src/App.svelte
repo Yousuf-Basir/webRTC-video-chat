@@ -17,6 +17,12 @@
   const configuration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" }, // Use a public STUN server
+      // turn server configuration
+      {
+        urls: "turn:62.72.1.59:3478",
+        username: "yousuf",
+        credential: "letsrock2day@Now",
+      },
     ],
   };
 
