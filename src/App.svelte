@@ -1,6 +1,7 @@
 <script>
   import { io } from "socket.io-client";
-  const socket = io("http://0.0.0.0:3000");
+  const SIGNALLING_SERVER_URL = import.meta.env.VITE_SIGNALLING_SERVER_URL;
+  const socket = io(SIGNALLING_SERVER_URL);
 
   // html elements
   let localVideo;
