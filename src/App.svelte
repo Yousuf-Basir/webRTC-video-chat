@@ -1,6 +1,6 @@
 <script>
   import { io } from "socket.io-client";
-  const socket = io("http://localhost:3000");
+  const socket = io("http://0.0.0.0:3000");
 
   // html elements
   let localVideo;
