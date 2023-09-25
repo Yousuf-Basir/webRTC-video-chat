@@ -1,7 +1,6 @@
 <script>
   import { io } from "socket.io-client";
-  const SIGNALLING_SERVER_URL = import.meta.env.VITE_SIGNALLING_SERVER_URL;
-  let socket;
+  const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL;
 
   // html elements
   let localVideo;
@@ -28,8 +27,8 @@
     ],
   };
 
-  // function to send message to the signalling server
-  const sendMessage = (message) => {
+  // function to send message to the signaling server
+  const sendMessage = (socket, message) => {
     socket.emit("message", message);
   };
 
@@ -42,14 +41,13 @@
 
   const startCall = async (room) => {
     try {
-      if(!room) {
-        console.log("no room")
+      if (!room) {
+        console.log("no room");
         return;
       }
 
-      console.log("starting call")
-
-      socket = io(`${SIGNALLING_SERVER_URL}?room=${room}`)
+      const socket = io(`${SIGNALING_SERVER_URL}?room=${room}`);
+      handleSocketEvents(socket);
 
       localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -68,7 +66,7 @@
       // handle incoming ice candidates
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
-          sendMessage({
+          sendMessage(socket, {
             iceCandidate: event.candidate,
           });
         }
@@ -79,10 +77,10 @@
         remoteVideo.srcObject = event.streams[0];
       };
 
-      // Send and offer to the signalling server
+      // Send and offer to the signaling server
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
-      sendMessage({
+      sendMessage(socket, {
         offer: offer,
       });
     } catch (error) {
@@ -90,31 +88,28 @@
     }
   };
 
-  // handle incomming message from the signalling server
-  $: if (socket) {
+  // handle incomming message from the signaling server
+  const handleSocketEvents = (socket) => {
     socket.on("message", async (message) => {
       if (!peerConnection) {
         return;
       }
       if (message.offer) {
-        console.log("This is an offer")
         // handle the incoming offer from the remote peer
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(message.offer)
         );
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
-        sendMessage({
+        sendMessage(socket, {
           answer: answer,
         });
       } else if (message.answer) {
-        console.log("this is answer")
         // handle the incoming answer from the remote server
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(message.answer)
         );
       } else if (message.iceCandidate) {
-        console.log("got incoming ice candidates")
         // handle incoming ice candidates from the remote peer
         try {
           await peerConnection.addIceCandidate(
@@ -125,7 +120,7 @@
         }
       }
     });
-  }
+  };
 
   const endCall = () => {
     if (peerConnection) {
@@ -142,9 +137,14 @@
 
   <div id="video_root">
     <!-- local video -->
-    <video bind:this={localVideo} id="localVideo" autoplay muted />
+    <video bind:this={localVideo} id="localVideo" autoplay>
+      <track kind="captions" />
+    </video>
+
     <!-- remote video -->
-    <video bind:this={remoteVideo} id="remoteVideo" autoplay muted />
+    <video bind:this={remoteVideo} id="remoteVideo" autoplay>
+      <track kind="captions" />
+    </video>
   </div>
 
   <div id="controls_root">
