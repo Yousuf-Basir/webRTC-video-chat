@@ -16,21 +16,42 @@ const io = socketIo(server, {
     }
 });
 
+// create a room data structure to keep track of users in each room
+const rooms = {};
+
 // socket io event handler for when a client connects
 io.on('connection', socket => {
-    console.log('A user connected');
+    const room = socket.handshake.query.room || 'default';
+
+    // create room if not exists
+    if (!rooms[room]) {
+        rooms[room] = [];
+    }
+
+    // add the user to the room
+    rooms[room].push(socket);
+
+    console.log(`A user connected to room ${room}`);
 
     // handle signalling message
     socket.on('message', message => {
-        console.log('Received message: ', message);
-
-        // Broadcast the message to all connected clients except the sender
-        socket.broadcast.emit('message', message);
+        // broadcast the message to all users in the same room
+        rooms[room].forEach((userSocket) => {
+            if(userSocket !== socket) {
+                userSocket.emit('message', message);
+            }
+        });
     });
 
     // handle disconnect
     socket.on('disconnect', () => {
-        console.log('A user disconnected');
+        // remove the user from the room
+        const index = rooms[room].indexOf(socket);
+        if(index !== -1) {
+            rooms[room].splice(index, 1);
+        }
+
+        console.log(`A user disconnected from the room ${room}`)
     });
 });
 

@@ -1,13 +1,15 @@
 <script>
   import { io } from "socket.io-client";
   const SIGNALLING_SERVER_URL = import.meta.env.VITE_SIGNALLING_SERVER_URL;
-  const socket = io(SIGNALLING_SERVER_URL);
+  let socket;
 
   // html elements
   let localVideo;
   let remoteVideo;
   let startCallBtn;
+  let joinCallBtn;
   let endCallBtn;
+  let roomIdInput;
 
   // variables
   let localStream;
@@ -31,8 +33,24 @@
     socket.emit("message", message);
   };
 
-  const startCall = async () => {
+  const joinCall = async () => {
+    const room = roomIdInput.trim();
+    if (room !== "") {
+      startCall(room);
+    }
+  };
+
+  const startCall = async (room) => {
     try {
+      if(!room) {
+        console.log("no room")
+        return;
+      }
+
+      console.log("starting call")
+
+      socket = io(`${SIGNALLING_SERVER_URL}?room=${room}`)
+
       localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
@@ -73,36 +91,41 @@
   };
 
   // handle incomming message from the signalling server
-  socket.on("message", async (message) => {
-    if (!peerConnection) {
-      return;
-    }
-    if (message.offer) {
-      // handle the incoming offer from the remote peer
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(message.offer)
-      );
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      sendMessage({
-        answer: answer,
-      });
-    } else if (message.answer) {
-      // handle the incoming answer from the remote server
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(message.answer)
-      );
-    } else if (message.iceCandidate) {
-      // handle incoming ice candidates from the remote peer
-      try {
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(message.iceCandidate)
-        );
-      } catch (error) {
-        console.log("Error adding ice candidates ", error);
+  $: if (socket) {
+    socket.on("message", async (message) => {
+      if (!peerConnection) {
+        return;
       }
-    }
-  });
+      if (message.offer) {
+        console.log("This is an offer")
+        // handle the incoming offer from the remote peer
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(message.offer)
+        );
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        sendMessage({
+          answer: answer,
+        });
+      } else if (message.answer) {
+        console.log("this is answer")
+        // handle the incoming answer from the remote server
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(message.answer)
+        );
+      } else if (message.iceCandidate) {
+        console.log("got incoming ice candidates")
+        // handle incoming ice candidates from the remote peer
+        try {
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(message.iceCandidate)
+          );
+        } catch (error) {
+          console.log("Error adding ice candidates ", error);
+        }
+      }
+    });
+  }
 
   const endCall = () => {
     if (peerConnection) {
@@ -125,7 +148,18 @@
   </div>
 
   <div id="controls_root">
+    <!-- input -->
+    <input
+      bind:value={roomIdInput}
+      type="text"
+      id="roomInput"
+      placeholder="Enter room ID"
+    />
+
     <!-- controls -->
+    <button bind:this={joinCallBtn} on:click={joinCall} id="joinCallBtn">
+      Join call
+    </button>
     <button bind:this={startCallBtn} on:click={startCall} id="startCallBtn">
       Start call
     </button>
