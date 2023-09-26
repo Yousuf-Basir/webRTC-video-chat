@@ -2,13 +2,11 @@
   import { io } from "socket.io-client";
   const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL;
 
+  const socketRoomId = window.location.pathname.split("/")[1];
+
   // html elements
   let localVideo;
   let remoteVideo;
-  let startCallBtn;
-  let joinCallBtn;
-  let endCallBtn;
-  let roomIdInput;
 
   // variables
   let localStream;
@@ -33,20 +31,13 @@
   };
 
   const joinCall = async () => {
-    const room = roomIdInput.trim();
-    if (room !== "") {
-      startCall(room);
-    }
-  };
-
-  const startCall = async (room) => {
     try {
-      if (!room) {
-        console.log("no room");
+      if (!socketRoomId || !socketRoomId.length) {
+        console.log("no socketRoomId");
         return;
       }
 
-      const socket = io(`${SIGNALING_SERVER_URL}?room=${room}`);
+      const socket = io(`${SIGNALING_SERVER_URL}?room=${socketRoomId}`);
       handleSocketEvents(socket);
 
       localStream = await navigator.mediaDevices.getUserMedia({
@@ -137,7 +128,7 @@
 
   <div id="video_root">
     <!-- local video -->
-    <video bind:this={localVideo} id="localVideo" autoplay>
+    <video bind:this={localVideo} id="localVideo" autoplay muted>
       <track kind="captions" />
     </video>
 
@@ -148,22 +139,12 @@
   </div>
 
   <div id="controls_root">
-    <!-- input -->
-    <input
-      bind:value={roomIdInput}
-      type="text"
-      id="roomInput"
-      placeholder="Enter room ID"
-    />
-
     <!-- controls -->
-    <button bind:this={joinCallBtn} on:click={joinCall} id="joinCallBtn">
+    <button on:click={joinCall} id="joinCallBtn">
       Join call
     </button>
-    <button bind:this={startCallBtn} on:click={startCall} id="startCallBtn">
-      Start call
-    </button>
-    <button bind:this={endCallBtn} on:click={endCall} id="endCallBtn">
+
+    <button on:click={endCall} id="endCallBtn">
       End call
     </button>
   </div>
