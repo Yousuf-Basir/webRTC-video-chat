@@ -1,93 +1,93 @@
-<script lang="ts">
+<script>
   import { Alert } from "flowbite-svelte";
-  import {
-    localVideo,
-    remoteVideo,
-    localStream,
-    peerConnection,
-  } from "./stores/store.js";
-  import { endCall, joinCall } from "./services/callServices.js";
-
-  const handleJoinCall = () => {
-    joinCall({
-      peerConnection: $peerConnection,
-      localStream: $localStream,
-      localVideo: $localVideo,
-      remoteVideo: $remoteVideo,
-    });
-  };
-
-  const handleEndCall = () => {
-    endCall({
-      peerConnection: $peerConnection,
-      localStream: $localStream,
-      localVideo: $localVideo,
-      remoteVideo: $remoteVideo,
-    });
-  };
+  import CallError from "./components/call/CallError.svelte";
+  import OnGoingCall from "./components/call/OnGoingCall.svelte";
+  import { socketRoomId } from "./stores/globalConfig";
 </script>
 
 <div id="app_root">
-  <h1>WebRTC video calling</h1>
+  {#if socketRoomId}
+    <!-- call components -->
+    <div class="call_root">
+      <div />
+      <div>
+        <OnGoingCall />
+      </div>
+      <div />
+    </div>
 
-  <div id="video_root">
-    <!-- local video -->
-    <video bind:this={$localVideo} id="localVideo" autoplay muted>
-      <track kind="captions" />
-    </video>
+    <!-- share components -->
+    <div class="share_root">
+      <div />
+      <div />
+      <div />
+    </div>
 
-    <!-- remote video -->
-    <video bind:this={$remoteVideo} id="remoteVideo" autoplay>
-      <track kind="captions" />
-    </video>
-  </div>
-
-  <div id="controls_root">
-    <!-- controls -->
-    <button on:click={handleJoinCall} id="joinCallBtn">Join call</button>
-
-    <button on:click={handleEndCall} id="endCallBtn">End call</button>
-  </div>
-
-  <Alert>
-    <span class="font-medium">Info alert!</span>
-    Change a few things up and try submitting again.
-  </Alert>
+  {:else}
+    <div class="call_error_root">
+      <Alert>
+        <span class="font-medium">No room ID</span>
+        Please provide a room ID to join a call.
+      </Alert>
+    </div>
+  {/if}
 </div>
 
 <style>
+  /* define variable for share root height */
+  :root {
+    --share_root_height: 120px;
+  }
   #app_root {
+    width: 100vw;
+    height: 100vh;
+    /* overflow: hidden; */
+  }
+  .call_error_root {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
   }
-
-  #video_root {
+  .call_root {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    height: calc(100vh - var(--share_root_height));
+  }
+
+  .call_root > div {
+    flex: 1;
+    height: calc(100vh - var(--share_root_height));
+    padding: 10px;
+    border: 1px solid green;
+  }
+
+  .call_root > div:nth-child(2) {
+    flex: 2; /* 2x the size of the other divs */
+    border: 1px solid red;
+  }
+
+  .share_root {
+    height: var(--share_root_height);
     width: 100%;
+    border: 1px solid blue;
   }
 
-  #video_root video {
-    width: 500px;
-    height: 500px;
-    margin: 10px;
-    border: 1px solid rgb(7, 152, 255);
-  }
+  @media (max-width: 768px) {
+    .call_root > div {
+      flex: 1;
+      display: none;
+      border: 1px solid green;
+      padding: 0;
+    }
 
-  #controls_root {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-  }
-
-  #controls_root button {
-    margin: 0 10px;
+    .call_root > div:nth-child(2) {
+      flex: 1;
+      display: block;
+      border: 1px solid red;
+    }
   }
 </style>
