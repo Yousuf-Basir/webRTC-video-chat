@@ -77,10 +77,10 @@
 
     <div>
       <!-- maximize button -->
-      <Button pill={true} class="w-10 h-10" on:click={handleMaximizeToggle}>
+      <Button pill={true} color="none" class="w-10 h-10" on:click={handleMaximizeToggle}>
         <FullscreenToggleSvg
           size={24}
-          color="#ffffff"
+          color="#1c64f1"
           isMaximized={$isVideoMaximized}
         />
       </Button>

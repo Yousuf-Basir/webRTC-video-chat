@@ -1,10 +1,13 @@
 <script>
   import { Alert } from "flowbite-svelte";
-  import CallError from "./components/call/CallError.svelte";
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
   import { socketRoomId } from "./stores/globalConfig";
-  import { isCallOngoing, isVideoMaximized } from "./stores/store";
+  import { isVideoMaximized } from "./stores/store";
   import Chat from "./components/chat/Chat.svelte";
+  import EditingSection from "./components/editingSection/EditingSection.svelte";
+  import BottomNavigation from "./components/bottomSharePanel/BottomNavigation.svelte";
+  import SharedImage from "./components/bottomSharePanel/SharedImage.svelte";
+  import ImageUpload from "./components/bottomSharePanel/ImageUpload.svelte";
 </script>
 
 <div id="app_root">
@@ -14,20 +17,27 @@
       <div class:show={$isVideoMaximized}>
         <Chat />
       </div>
-        
+
       <div>
         <OnGoingCall />
       </div>
-      <div class:show={$isVideoMaximized} />
+      <div class:show={$isVideoMaximized}>
+        <EditingSection />
+      </div>
     </div>
 
     <!-- share components -->
-    <div class="share_root"  class:show={$isVideoMaximized}>
-      <div />
-      <div />
-      <div />
+    <div class="share_root" class:show={$isVideoMaximized}>
+      <div>
+        <SharedImage />
+      </div>
+      <div>
+        <BottomNavigation />
+      </div>
+      <div>
+        <ImageUpload />
+      </div>
     </div>
-
   {:else}
     <div class="call_error_root">
       <Alert>
@@ -78,6 +88,10 @@
   .share_root {
     height: var(--share_root_height);
     width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .show {
@@ -92,6 +106,19 @@
     }
 
     .call_root > div:nth-child(2) {
+      flex: 1;
+      display: block;
+    }
+    .share_root {
+      height: calc(var(--share_root_height) - 40px);
+      padding: 10px;
+    }
+
+    .share_root > div {
+      display: none;
+    }
+
+    .share_root > div:nth-child(2) {
       flex: 1;
       display: block;
     }
