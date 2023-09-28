@@ -18,15 +18,8 @@ export const joinCall = async ({
             return;
         }
 
-        // initialize the peer connection
-        peerConnection = new RTCPeerConnection(peerConnectionConfig);
-
         handleSocketEvents(peerConnection);
 
-        localStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true,
-        });
         localVideo.srcObject = localStream;
 
         // add the local stream to the peer connection

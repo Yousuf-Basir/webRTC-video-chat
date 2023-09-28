@@ -1,21 +1,37 @@
 <script>
   import {
-    MicrophoneSolid,
-    PhoneOutline,
-    CameraFotoOutline,
-  } from "flowbite-svelte-icons";
-
-  import {
     localVideo,
     remoteVideo,
     localStream,
     peerConnection,
+    isCallOngoing,
+    isMicOn,
+    isCameraOn,
+    isVideoMaximized,
   } from "../../stores/store.js";
   import { endCall, joinCall } from "../../services/callServices.js";
   import { Button } from "flowbite-svelte";
   import { onMount } from "svelte";
+  import { peerConnectionConfig } from "../../stores/globalConfig.js";
+  import MicrophoneToggleSvg from "../svg/MicrophoneToggleSvg.svelte";
+  import CameraToggleSvg from "../svg/CameraToggleSvg.svelte";
+  import OnGoingCallSvg from "../svg/OnGoingCallSvg.svelte";
+  import FullscreenToggleSvg from "../svg/FullscreenToggleSvg.svelte";
+  import CallEnd from "../svg/CallEnd.svelte";
 
-  const handleJoinCall = () => {
+  const initializePeerConnection = async () => {
+    // initialize the peer connection
+    $peerConnection = new RTCPeerConnection(peerConnectionConfig);
+    // get camera and mic from user device
+    $localStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+
+    handleJoinCall();
+  };
+
+  const handleJoinCall = async () => {
     joinCall({
       peerConnection: $peerConnection,
       localStream: $localStream,
@@ -24,7 +40,7 @@
     });
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
     endCall({
       peerConnection: $peerConnection,
       localStream: $localStream,
@@ -33,20 +49,41 @@
     });
   };
 
+  const handleMicToggle = () => {
+    $isMicOn = !$isMicOn;
+    $localStream.getAudioTracks()[0].enabled = $isMicOn;
+  };
+
+  const handleCameraToggle = () => {
+    $isCameraOn = !$isCameraOn;
+    $localStream.getVideoTracks()[0].enabled = $isCameraOn;
+  };
+
+  const handleMaximizeToggle = () => {
+    $isVideoMaximized = !$isVideoMaximized;
+  };
+
   onMount(() => {
-    handleJoinCall();
+    initializePeerConnection();
   });
 </script>
 
 <div class="on_going_call_root">
-  <div class="call_titlebar">
+  <div class="title_bar">
     <div>
-      <PhoneOutline class="text-white bg-blue-600 p-2 rounded-full w-10 h-10" />
+      <OnGoingCallSvg size={24} color="#1c64f1" />
       <span>Ongoing call</span>
     </div>
 
     <div>
-      <!-- <MinimizeOutline /> -->
+      <!-- maximize button -->
+      <Button pill={true} class="w-10 h-10" on:click={handleMaximizeToggle}>
+        <FullscreenToggleSvg
+          size={24}
+          color="#ffffff"
+          isMaximized={$isVideoMaximized}
+        />
+      </Button>
     </div>
   </div>
 
@@ -61,16 +98,30 @@
 
     <div class="controls_root">
       <!-- mute button -->
-      <Button pill={true} class="w-10 h-10">
-        <MicrophoneSolid class="w-6 h-6 text-white" />
+      <Button
+        pill={true}
+        color={$isMicOn ? "blue" : "dark"}
+        class="w-10 h-10"
+        on:click={handleMicToggle}
+      >
+        <MicrophoneToggleSvg size={24} color="#ffffff" isMicOn={$isMicOn} />
       </Button>
       <!-- camera button -->
-      <Button pill={true} class="w-10 h-10">
-        <CameraFotoOutline class="w-6 h-6 text-white" />
+      <Button
+        pill={true}
+        color={$isCameraOn ? "blue" : "dark"}
+        class="w-10 h-10"
+        on:click={handleCameraToggle}
+      >
+        <CameraToggleSvg size={24} color="#ffffff" isCameraOn={$isCameraOn} />
       </Button>
       <!-- call end button -->
-      <Button on:click={handleEndCall} pill={true} class="w-10 h-10 bg-red-600 rotate-[135deg]">
-        <PhoneOutline class="w-6 h-6 text-white" />
+      <Button
+        on:click={handleEndCall}
+        pill={true}
+        class="w-10 h-10 bg-red-600 hover:bg-red-700 active:bg-red-800"
+      >
+        <CallEnd size={24} color="#ffffff" />
       </Button>
     </div>
   </div>
@@ -84,18 +135,18 @@
     border-radius: 14px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
     height: 100%;
+    overflow: hidden;
   }
 
-  .call_titlebar {
+  .title_bar {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     padding: 10px 20px;
-    border-bottom: 1px solid rgb(7, 152, 255);
   }
 
-  .call_titlebar > div {
+  .title_bar > div {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -103,7 +154,7 @@
     color: #1c64f1;
   }
 
-  .call_titlebar span {
+  .title_bar span {
     font-size: 1.1rem;
     font-weight: 500;
   }
@@ -111,7 +162,6 @@
   .video_root {
     flex: 1;
     display: flex;
-    border: 1px solid green;
     position: relative;
   }
 
@@ -147,12 +197,12 @@
 
   @media (max-width: 768px) {
     .on_going_call_root {
-        border-radius: 0;
+      border-radius: 0;
     }
 
     .localVideo {
-        width: 100px;
-        height: 150px;
+      width: 100px;
+      height: 150px;
     }
   }
 </style>

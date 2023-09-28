@@ -3,21 +3,26 @@
   import CallError from "./components/call/CallError.svelte";
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
   import { socketRoomId } from "./stores/globalConfig";
+  import { isCallOngoing, isVideoMaximized } from "./stores/store";
+  import Chat from "./components/chat/Chat.svelte";
 </script>
 
 <div id="app_root">
   {#if socketRoomId}
     <!-- call components -->
     <div class="call_root">
-      <div />
+      <div class:show={$isVideoMaximized}>
+        <Chat />
+      </div>
+        
       <div>
         <OnGoingCall />
       </div>
-      <div />
+      <div class:show={$isVideoMaximized} />
     </div>
 
     <!-- share components -->
-    <div class="share_root">
+    <div class="share_root"  class:show={$isVideoMaximized}>
       <div />
       <div />
       <div />
@@ -41,6 +46,8 @@
   #app_root {
     width: 100vw;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
     /* overflow: hidden; */
   }
   .call_error_root {
@@ -55,39 +62,38 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    height: calc(100vh - var(--share_root_height));
+    flex: 1;
   }
 
   .call_root > div {
     flex: 1;
-    height: calc(100vh - var(--share_root_height));
+    height: 100%;
     padding: 10px;
-    border: 1px solid green;
   }
 
   .call_root > div:nth-child(2) {
     flex: 2; /* 2x the size of the other divs */
-    border: 1px solid red;
   }
 
   .share_root {
     height: var(--share_root_height);
     width: 100%;
-    border: 1px solid blue;
+  }
+
+  .show {
+    display: none;
   }
 
   @media (max-width: 768px) {
     .call_root > div {
       flex: 1;
       display: none;
-      border: 1px solid green;
       padding: 0;
     }
 
     .call_root > div:nth-child(2) {
       flex: 1;
       display: block;
-      border: 1px solid red;
     }
   }
 </style>

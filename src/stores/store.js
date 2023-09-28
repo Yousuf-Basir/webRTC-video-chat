@@ -10,5 +10,11 @@ export const remoteVideo = writable(null);
 export const localStream = writable(null);
 export const peerConnection = writable(null);
 
+// call states
+export const isCallOngoing = writable(false);
+export const isMicOn = writable(true);
+export const isCameraOn = writable(true);
+export const isVideoMaximized = writable(false);
+
 // socket
 export const socketInstance = writable(io(`${SIGNALING_SERVER_URL}?room=${socketRoomId}`))
