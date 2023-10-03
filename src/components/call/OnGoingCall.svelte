@@ -41,12 +41,12 @@
   };
 
   const handleEndCall = async () => {
-    endCall({
-      peerConnection: $peerConnection,
-      localStream: $localStream,
-      localVideo: $localVideo,
-      remoteVideo: $remoteVideo,
-    });
+    $localVideo.srcObject = null;
+    $remoteVideo.srcObject = null;
+    $localStream.getTracks().forEach((track) => track.stop());
+    $isCallOngoing = false;
+
+    endCall();
   };
 
   const handleMicToggle = () => {
@@ -71,13 +71,20 @@
 <div class="on_going_call_root">
   <div class="title_bar">
     <div>
-      <OnGoingCallSvg size={24} color="#1c64f1" />
+      <OnGoingCallSvg size={24} color={
+        $isCallOngoing ? "#1c64f1" : "#ff0000"
+      } />
       <span>Ongoing call</span>
     </div>
 
     <div>
       <!-- maximize button -->
-      <Button pill={true} color="none" class="w-10 h-10" on:click={handleMaximizeToggle}>
+      <Button
+        pill={true}
+        color="none"
+        class="w-10 h-10"
+        on:click={handleMaximizeToggle}
+      >
         <FullscreenToggleSvg
           size={24}
           color="#1c64f1"

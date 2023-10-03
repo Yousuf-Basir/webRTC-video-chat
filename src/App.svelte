@@ -2,7 +2,7 @@
   import { Alert } from "flowbite-svelte";
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
   import { socketRoomId } from "./stores/globalConfig";
-  import { isVideoMaximized } from "./stores/store";
+  import { isCallOngoing, isVideoMaximized } from "./stores/store";
   import Chat from "./components/chat/Chat.svelte";
   import EditingSection from "./components/editingSection/EditingSection.svelte";
   import BottomNavigation from "./components/bottomSharePanel/BottomNavigation.svelte";
@@ -19,7 +19,16 @@
       </div>
 
       <div>
-        <OnGoingCall />
+        {#if $isCallOngoing}
+          <OnGoingCall />
+        {:else}
+          <div class="call_ended_root">
+            <Alert color="red">
+              <span class="font-medium">Call ended</span>
+              <div>Refresh the page to join the call again.</div>
+            </Alert>
+          </div>
+        {/if}
       </div>
       <div class:show={$isVideoMaximized}>
         <EditingSection />
@@ -66,6 +75,13 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
+  }
+  .call_ended_root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
   }
   .call_root {
     display: flex;

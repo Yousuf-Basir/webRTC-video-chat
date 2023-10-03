@@ -16,42 +16,31 @@ const io = socketIo(server, {
     }
 });
 
-// create a room data structure to keep track of users in each room
-const rooms = {};
-
 // socket io event handler for when a client connects
 io.on('connection', socket => {
-    const room = socket.handshake.query.room || 'default';
+    const roomName = socket.handshake.query.room || 'default';
 
-    // create room if not exists
-    if (!rooms[room]) {
-        rooms[room] = [];
-    }
-
-    // add the user to the room
-    rooms[room].push(socket);
-
-    console.log(`A user connected to room ${room}`);
+    // join socket room
+    socket.join(roomName);
+    console.log(`${socket.id} has joined ${roomName}`);
 
     // handle signalling message
     socket.on('message', message => {
-        // broadcast the message to all users in the same room
-        rooms[room].forEach((userSocket) => {
-            if(userSocket !== socket) {
-                userSocket.emit('message', message);
-            }
-        });
+        socket.broadcast.to(roomName).emit('message', message);
+    });
+
+    // handle leave
+    socket.on('leave', () => {
+        socket.leave(roomName);
+        // send a message to the client to remove the remote stream
+        socket.broadcast.to(roomName).emit('leave');
+        console.log(`${socket.id} left the room ${roomName}`);
     });
 
     // handle disconnect
     socket.on('disconnect', () => {
-        // remove the user from the room
-        const index = rooms[room].indexOf(socket);
-        if(index !== -1) {
-            rooms[room].splice(index, 1);
-        }
-
-        console.log(`A user disconnected from the room ${room}`)
+        socket.leave(roomName);
+        console.log(`${socket.id} disconnected from the room ${roomName}`);
     });
 });
 
