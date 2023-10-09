@@ -8,6 +8,7 @@
     isMicOn,
     isCameraOn,
     isVideoMaximized,
+    isVideoFullScreen
   } from "../../stores/store.js";
   import { endCall, joinCall } from "../../services/callServices.js";
   import { Button } from "flowbite-svelte";
@@ -18,6 +19,8 @@
   import OnGoingCallSvg from "../svg/OnGoingCallSvg.svelte";
   import FullscreenToggleSvg from "../svg/FullscreenToggleSvg.svelte";
   import CallEnd from "../svg/CallEnd.svelte";
+
+  let onGoingCallRoot;
 
   const initializePeerConnection = async () => {
     // initialize the peer connection
@@ -60,15 +63,31 @@
   };
 
   const handleMaximizeToggle = () => {
-    $isVideoMaximized = !$isVideoMaximized;
+    // $isVideoMaximized = !$isVideoMaximized;
+    $isVideoFullScreen = !$isVideoFullScreen;
   };
+
+  // toggle full screen
+  $: if ($isVideoFullScreen) {
+    if (onGoingCallRoot.requestFullscreen) {
+      onGoingCallRoot.requestFullscreen();
+    } else if (onGoingCallRoot.webkitRequestFullscreen) {
+      /* Safari */
+      onGoingCallRoot.webkitRequestFullscreen();
+    } else if (onGoingCallRoot.msRequestFullscreen) {
+      /* IE11 */
+      onGoingCallRoot.msRequestFullscreen();
+    }
+  } else {
+    document.exitFullscreen();
+  }
 
   onMount(() => {
     initializePeerConnection();
   });
 </script>
 
-<div class="on_going_call_root">
+<div class="on_going_call_root" bind:this={onGoingCallRoot}>
   <div class="title_bar">
     <div>
       <OnGoingCallSvg size={24} color={
@@ -88,7 +107,7 @@
         <FullscreenToggleSvg
           size={24}
           color="#1c64f1"
-          isMaximized={$isVideoMaximized}
+          isMaximized={$isVideoFullScreen}
         />
       </Button>
     </div>
