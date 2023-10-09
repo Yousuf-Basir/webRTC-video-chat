@@ -95,11 +95,11 @@
   </div>
 
   <div class="video_root">
-    <video bind:this={$remoteVideo} class="remoteVideo" autoplay>
+    <video bind:this={$remoteVideo} class="remoteVideo" autoplay playsinline>
       <track kind="captions" />
     </video>
 
-    <video bind:this={$localVideo} class="localVideo" autoplay muted>
+    <video bind:this={$localVideo} class="localVideo" autoplay muted playsinline>
       <track kind="captions" />
     </video>
 
