@@ -8,10 +8,9 @@
     isMicOn,
     isCameraOn,
     isVideoMaximized,
-    isVideoFullScreen
   } from "../../stores/store.js";
   import { endCall, joinCall } from "../../services/callServices.js";
-  import { Button } from "flowbite-svelte";
+  import { Button, Spinner } from "flowbite-svelte";
   import { onMount } from "svelte";
   import { peerConnectionConfig } from "../../stores/globalConfig.js";
   import MicrophoneToggleSvg from "../svg/MicrophoneToggleSvg.svelte";
@@ -21,8 +20,11 @@
   import CallEnd from "../svg/CallEnd.svelte";
 
   let onGoingCallRoot;
+  let isVideoFullScreen;
+  let initializingPeerConnection = true;
 
   const initializePeerConnection = async () => {
+    initializingPeerConnection = false;
     // initialize the peer connection
     $peerConnection = new RTCPeerConnection(peerConnectionConfig);
     // get camera and mic from user device
@@ -63,37 +65,43 @@
   };
 
   const handleMaximizeToggle = () => {
-    // $isVideoMaximized = !$isVideoMaximized;
-    $isVideoFullScreen = !$isVideoFullScreen;
+    $isVideoMaximized = !$isVideoMaximized;
   };
 
   // toggle full screen
-  $: if ($isVideoFullScreen) {
-    if (onGoingCallRoot.requestFullscreen) {
+  const handleToggleFullScreen = () => {
+    if (!document.fullscreenElement) {
       onGoingCallRoot.requestFullscreen();
-    } else if (onGoingCallRoot.webkitRequestFullscreen) {
-      /* Safari */
-      onGoingCallRoot.webkitRequestFullscreen();
-    } else if (onGoingCallRoot.msRequestFullscreen) {
-      /* IE11 */
-      onGoingCallRoot.msRequestFullscreen();
+      isVideoFullScreen = true;
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        isVideoFullScreen = false;
+      }
     }
-  } else {
-    document.exitFullscreen();
-  }
+  };
 
   onMount(() => {
-    initializePeerConnection();
+    setTimeout(() => {
+      initializePeerConnection();
+    }, 5000);
   });
 </script>
 
 <div class="on_going_call_root" bind:this={onGoingCallRoot}>
   <div class="title_bar">
     <div>
-      <OnGoingCallSvg size={24} color={
-        $isCallOngoing ? "#1c64f1" : "#ff0000"
-      } />
+      <OnGoingCallSvg
+        size={24}
+        color={$isCallOngoing ? "#1c64f1" : "#ff0000"}
+      />
       <span>Ongoing call</span>
+    </div>
+
+    <div>
+      {#if initializingPeerConnection}
+        <Spinner />
+      {/if}
     </div>
 
     <div>
@@ -102,12 +110,12 @@
         pill={true}
         color="none"
         class="w-10 h-10"
-        on:click={handleMaximizeToggle}
+        on:click={handleToggleFullScreen}
       >
         <FullscreenToggleSvg
           size={24}
           color="#1c64f1"
-          isMaximized={$isVideoFullScreen}
+          isMaximized={isVideoFullScreen}
         />
       </Button>
     </div>
@@ -118,7 +126,13 @@
       <track kind="captions" />
     </video>
 
-    <video bind:this={$localVideo} class="localVideo" autoplay muted playsinline>
+    <video
+      bind:this={$localVideo}
+      class="localVideo"
+      autoplay
+      muted
+      playsinline
+    >
       <track kind="captions" />
     </video>
 

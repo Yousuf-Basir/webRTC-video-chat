@@ -15,7 +15,6 @@ export const isCallOngoing = writable(true);
 export const isMicOn = writable(true);
 export const isCameraOn = writable(true);
 export const isVideoMaximized = writable(true);
-export const isVideoFullScreen = writable(false);
 
 // socket
 export const socketInstance = writable(io(`${SIGNALING_SERVER_URL}?room=${socketRoomId}`))
