@@ -82,9 +82,7 @@
   };
 
   onMount(() => {
-    setTimeout(() => {
-      initializePeerConnection();
-    }, 5000);
+    initializePeerConnection();
   });
 </script>
 
