@@ -1,5 +1,5 @@
 <script>
-  import { Alert } from "flowbite-svelte";
+  import { Alert, P } from "flowbite-svelte";
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
   import { socketRoomId } from "./stores/globalConfig";
   import { isCallOngoing, isVideoMaximized } from "./stores/store";
@@ -8,6 +8,15 @@
   import BottomNavigation from "./components/bottomSharePanel/BottomNavigation.svelte";
   import SharedImage from "./components/bottomSharePanel/SharedImage.svelte";
   import ImageUpload from "./components/bottomSharePanel/ImageUpload.svelte";
+  import { onMount } from "svelte";
+  import { getSessionDataJson } from "./services/sessionStorageServices";
+  import NewUserForm from "./components/user/newUserForm.svelte";
+
+  var user = null;
+
+  onMount(() => {
+    user = getSessionDataJson("user");
+  })
 </script>
 
 <div id="app_root">
@@ -19,8 +28,13 @@
       </div>
 
       <div>
+        <!-- default value of isCallOngoing is true -->
         {#if $isCallOngoing}
-          <OnGoingCall />
+          {#if user}
+            <OnGoingCall />
+          {:else}
+            <NewUserForm />
+          {/if}
         {:else}
           <div class="call_ended_root">
             <Alert color="red">
