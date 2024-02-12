@@ -21,6 +21,23 @@
 
   let joiningError = null;
 
+  isCallOngoing.subscribe((value) => {
+    console.log("isCallOngoing", value);
+
+    if(!value) {
+      // replace the url with "/end"
+      window.history.pushState({}, null, "/");
+    } else {
+      // replace the url with room name
+      window.history.pushState({}, null, `/${socketRoomId}`);
+    }
+  });
+
+  const handleReJoin = () => {
+    // rebuild the url with room name
+    window.location.href = `/${socketRoomId}`;
+  }
+
   onMount(() => {
     var user = getSessionDataJson("user");
 
@@ -77,7 +94,9 @@
                 again.
               </p>
               <div class="flex gap-2">
-                <Button on:click={() => window.location.reload()} outline>
+                <Button on:click={() => 
+                  handleReJoin()
+                } outline>
                   Rejoin
                 </Button>
               </div>
@@ -105,8 +124,8 @@
   {:else}
     <div class="call_error_root">
       <Alert>
-        <span class="font-medium">No room ID</span>
-        Please provide a room ID to join a call.
+        <span class="text-lg font-medium">meet.myvisitsonline.com</span>
+        <p>Please provide a room ID to join a call.</p>
       </Alert>
     </div>
   {/if}
