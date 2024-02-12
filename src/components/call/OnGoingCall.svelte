@@ -8,9 +8,11 @@
     isMicOn,
     isCameraOn,
     isVideoMaximized,
+    socketInstance,
+    socketRoomMembers,
   } from "../../stores/store.js";
   import { endCall, joinCall } from "../../services/callServices.js";
-  import { Button, Spinner } from "flowbite-svelte";
+  import { Alert, Badge, Button, Spinner } from "flowbite-svelte";
   import { onMount } from "svelte";
   import { peerConnectionConfig } from "../../stores/globalConfig.js";
   import MicrophoneToggleSvg from "../svg/MicrophoneToggleSvg.svelte";
@@ -18,10 +20,16 @@
   import OnGoingCallSvg from "../svg/OnGoingCallSvg.svelte";
   import FullscreenToggleSvg from "../svg/FullscreenToggleSvg.svelte";
   import CallEnd from "../svg/CallEnd.svelte";
+  import { get } from "svelte/store";
+  import { getSessionDataJson } from "../../services/sessionStorageServices.js";
 
   let onGoingCallRoot;
   let isVideoFullScreen;
   let initializingPeerConnection = true;
+  let isWaitingForOther = true;
+  let otherMember = null;
+  let currentUser = getSessionDataJson("user")
+  let timerCount = "00:00:00";
 
   const initializePeerConnection = async () => {
     initializingPeerConnection = false;
@@ -33,10 +41,6 @@
       audio: true,
     });
 
-    handleJoinCall();
-  };
-
-  const handleJoinCall = async () => {
     joinCall({
       peerConnection: $peerConnection,
       localStream: $localStream,
@@ -81,8 +85,41 @@
     }
   };
 
+  socketRoomMembers.subscribe((members) => {
+    console.log("members", members)
+    if (members && Array.isArray(members) && members.length > 1) {
+      isWaitingForOther = false;
+      
+      otherMember = members.filter(member => currentUser.name !== member.name)[0];
+    } else {
+      isWaitingForOther = true;
+      otherMember = null;
+    }
+  });
+
+  // count time. show seconds, minutes and hours
+  const countTime = () => {
+    let seconds = 0;
+    let minutes = 0;
+    let hours = 0;
+
+    setInterval(() => {
+      seconds++;
+      if (seconds === 60) {
+        seconds = 0;
+        minutes++;
+      }
+      if (minutes === 60) {
+        minutes = 0;
+        hours++;
+      }
+      timerCount = `${hours}:${minutes}:${seconds}`;
+    }, 1000);
+  }
+
   onMount(() => {
     initializePeerConnection();
+    countTime();
   });
 </script>
 
@@ -94,6 +131,13 @@
         color={$isCallOngoing ? "#1c64f1" : "#ff0000"}
       />
       <span>Ongoing call</span>
+
+      <!-- timer count -->
+    <div>
+      <span color="none" class="timer_count">
+        {timerCount}
+      </span>
+    </div>
     </div>
 
     <div>
@@ -101,6 +145,8 @@
         <Spinner />
       {/if}
     </div>
+
+    
 
     <div>
       <!-- maximize button -->
@@ -120,11 +166,26 @@
   </div>
 
   <div class="video_root">
+    {#if isWaitingForOther}
+      <div class="waiting_alert">
+        <Alert>
+          Waiting for other party to join the call
+        </Alert>
+      </div>
+    {/if}
+
+    <div class="status_bar">
+      {#if otherMember?.name}
+        <div class="other_member_name">{otherMember?.name}</div>
+      {/if}
+    </div>
+
     <video bind:this={$remoteVideo} class="remoteVideo" autoplay playsinline>
       <track kind="captions" />
     </video>
 
-    <video
+    <div class="local_video_container">
+      <video
       bind:this={$localVideo}
       class="localVideo"
       autoplay
@@ -133,6 +194,9 @@
     >
       <track kind="captions" />
     </video>
+
+    <div class="current_user_name">{currentUser?.name}</div>
+    </div>
 
     <div class="controls_root">
       <!-- mute button -->
@@ -197,10 +261,56 @@
     font-weight: 500;
   }
 
+  .timer_count {
+    font-size: 14px !important;
+    color: #454545;
+  }
+
+  .status_bar {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    z-index: 2;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    padding: 6px;
+  }
+
+  .other_member_name {
+    text-transform: capitalize;
+    background-color: #454545;
+    padding: 4px 12px;
+    border-radius: 6px;
+    color: #ffffff;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .video_root {
     flex: 1;
     display: flex;
     position: relative;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(30, 30, 30);
+  }
+
+  .waiting_alert {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background-color: rgb(30, 30, 30);
+    padding: 10px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .remoteVideo {
@@ -212,7 +322,7 @@
     background-color: rgb(30, 30, 30);
   }
 
-  .localVideo {
+  .local_video_container {
     position: absolute;
     bottom: 20px;
     right: 20px;
@@ -221,6 +331,29 @@
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
     background-color: rgb(45, 45, 45);
+    z-index: 100;
+    overflow: hidden;
+  }
+
+  .localVideo {
+    height: 100%;
+    width: 100%;
+  }
+
+  .current_user_name {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    text-transform: capitalize;
+    background-color: #454545;
+    padding: 4px 12px;
+    border-radius: 6px;
+    color: #ffffff;
+    margin: 2px;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .controls_root {
@@ -231,6 +364,7 @@
     flex-direction: row;
     align-items: center;
     gap: 20px;
+    z-index: 100;
   }
 
   @media (max-width: 768px) {

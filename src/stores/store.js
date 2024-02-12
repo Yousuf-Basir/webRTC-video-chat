@@ -11,10 +11,12 @@ export const localStream = writable(null);
 export const peerConnection = writable(null);
 
 // call states
+export const connectedSessionUser = writable(null);
 export const isCallOngoing = writable(true);
 export const isMicOn = writable(true);
 export const isCameraOn = writable(true);
 export const isVideoMaximized = writable(true);
+export const socketRoomMembers = writable([]);
 
 // socket
 export const socketInstance = writable(io(`${SIGNALING_SERVER_URL}?room=${socketRoomId}`))

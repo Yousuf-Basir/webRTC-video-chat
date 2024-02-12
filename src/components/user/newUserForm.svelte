@@ -1,12 +1,26 @@
 <script>
   import { Label, Input, Modal, Button, Alert } from "flowbite-svelte";
-  import { localStream, localVideo } from "../../stores/store";
+  import {
+    connectedSessionUser,
+    localStream,
+    localVideo,
+    socketInstance,
+  } from "../../stores/store";
   import { onMount } from "svelte";
   import { InfoCircleSolid } from "flowbite-svelte-icons";
+  import {
+    getSessionDataJson,
+    setSessionData,
+  } from "../../services/sessionStorageServices";
+  import { get } from "svelte/store";
 
   let permissionModal = true;
   let permissionGranted = false;
   let permissionError = null;
+  let joiningError = null;
+
+  // form values
+  let userName = "";
 
   const loadLocalVideo = async () => {
     navigator.mediaDevices
@@ -16,7 +30,7 @@
       })
       .then((stream) => {
         $localStream = stream;
-        $localVideo.srcObject = $localStream;
+        $localVideo.srcObject = stream;
         permissionModal = false;
         permissionGranted = true;
         permissionError = null;
@@ -25,6 +39,26 @@
         permissionModal = false;
         permissionError = err.message;
       });
+  };
+
+  const handleFormSubmit = () => {
+    const _userName = userName.trim().toLowerCase();
+    const userFormData = {
+      name: _userName,
+    };
+    setSessionData("user", JSON.stringify(userFormData));
+
+    // TODO: this same code is also in src/App.svelte. Refactor it to a function
+    const socket = get(socketInstance);
+    socket.emit("join", { name: _userName }, (error) => {
+      if (error) {
+        joiningError = error;
+        console.log("JOINING ERROR", error);
+        return;
+      }
+      connectedSessionUser.set(userFormData);
+      socket.emit("getMembers");
+    });
   };
 
   onMount(() => {
@@ -44,16 +78,17 @@
         </div>
         {#if permissionError.includes("denied")}
           <p class="mt-2 mb-4 text-sm">
-            Browser has denied the permission.
-            Please reset the website permission
-            and try again.
+            Browser has denied the permission. Please reset the website
+            permission and try again.
           </p>
         {:else}
           <p class="mt-2 mb-4 text-sm">
             You have dismissed the permission. Please try again.
           </p>
           <div class="flex gap-2">
-            <Button color="yellow" on:click={() => (permissionModal = true)}>Try again</Button>
+            <Button color="yellow" on:click={() => (permissionModal = true)}>
+              Try again
+            </Button>
           </div>
         {/if}
       </Alert>
@@ -73,17 +108,34 @@
     </div>
   {/if}
 
+  <!-- user form -->
   <div class="form_container">
     <div class="user_form_root">
       <h1>What's your name?</h1>
-      <form>
-        <Label for="username">Your name</Label>
-        <Input type="text" id="username" name="username" />
 
-        <Button disabled={!permissionGranted || permissionError} type="submit">
+      <div class="form">
+        <Label for="username">Your name</Label>
+        <Input
+          bind:value={userName}
+          type="text"
+          id="username"
+          name="username"
+        />
+
+        <Button
+          on:click={handleFormSubmit}
+          disabled={!permissionGranted || permissionError || !userName.length}
+        >
           Join call
         </Button>
-      </form>
+
+       {#if joiningError}
+          <Alert color="red">
+            <InfoCircleSolid slot="icon" />
+            <p>{joiningError}</p>
+          </Alert>
+       {/if}
+      </div>
     </div>
   </div>
 
@@ -98,8 +150,9 @@
     </p>
 
     <p class="text-sm text-gray-600 dark:text-gray-400">
-      We need access to your camera and microphone to start the call. If required, browser
-      will ask for your permission. Click allow to start the call.
+      We need access to your camera and microphone to start the call. If
+      required, browser will ask for your permission. Click allow to start the
+      call.
     </p>
 
     <svelte:fragment slot="footer">
@@ -131,7 +184,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-
   }
 
   .video_container {
@@ -163,23 +215,10 @@
     font-weight: 200;
   }
 
-  form {
+  .form {
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-
-  button {
-    padding: 10px;
-    background-color: #00796b;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background-color: #005a4c;
   }
 
   /* mobile responsive */

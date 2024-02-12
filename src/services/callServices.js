@@ -1,13 +1,18 @@
 import { get } from "svelte/store";
 import { peerConnectionConfig, socketRoomId } from "../stores/globalConfig";
 import { io } from "socket.io-client";
-import { socketInstance, isCallOngoing } from "../stores/store";
+import { socketInstance, isCallOngoing, socketRoomMembers } from "../stores/store";
 
 // function to send message to the signaling server
 const sendMessage = (message) => {
   const socket = get(socketInstance);
   socket.emit("message", message);
 };
+
+export const getMembers = () => {
+  const socket = get(socketInstance);
+  socket.emit("getMembers");
+}
 
 export const joinCall = async ({
   localStream, localVideo, remoteVideo, peerConnection
@@ -47,6 +52,9 @@ export const joinCall = async ({
     sendMessage({
       offer: offer,
     });
+
+    getMembers();
+    
   } catch (error) {
     console.log("Error starting the call: ", error);
   }
@@ -91,6 +99,12 @@ const handleSocketEvents = (peerConnection) => {
       }
     }
   });
+
+  socket.on("roomData", async(roomData) => {
+    if(roomData?.users && Array.isArray(roomData.users)) {
+      socketRoomMembers.set(roomData.users)
+    }
+  })
 
   socket.on("leave", () => {
     // on remote peer leaving the call, close the call

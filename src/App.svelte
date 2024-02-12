@@ -1,8 +1,13 @@
 <script>
-  import { Alert, P } from "flowbite-svelte";
+  import { Alert, Button, P } from "flowbite-svelte";
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
   import { socketRoomId } from "./stores/globalConfig";
-  import { isCallOngoing, isVideoMaximized } from "./stores/store";
+  import {
+    connectedSessionUser,
+    isCallOngoing,
+    isVideoMaximized,
+    socketInstance,
+  } from "./stores/store";
   import Chat from "./components/chat/Chat.svelte";
   import EditingSection from "./components/editingSection/EditingSection.svelte";
   import BottomNavigation from "./components/bottomSharePanel/BottomNavigation.svelte";
@@ -11,16 +16,41 @@
   import { onMount } from "svelte";
   import { getSessionDataJson } from "./services/sessionStorageServices";
   import NewUserForm from "./components/user/newUserForm.svelte";
+  import { get } from "svelte/store";
+  import { InfoCircleSolid } from "flowbite-svelte-icons";
 
-  var user = null;
+  let joiningError = null;
 
   onMount(() => {
-    user = getSessionDataJson("user");
-  })
+    var user = getSessionDataJson("user");
+
+    if (user?.name) {
+      // TODO: this same code is also in src/newUserForm.svelte. Refactor it to a function
+      const socket = get(socketInstance);
+      socket.emit("join", { name: user.name }, (error) => {
+        if (error) {
+          joiningError = error;
+          console.log("JOINING ERROR", error);
+          return;
+        }
+        connectedSessionUser.set(user);
+        socket.emit("getMembers");
+      });
+    }
+    console.log("session user: ", user);
+    console.log("connected session user", get(connectedSessionUser));
+  });
 </script>
 
 <div id="app_root">
-  {#if socketRoomId}
+  {#if joiningError}
+    <div class="call_error_root">
+      <Alert color="red">
+        <InfoCircleSolid slot="icon" />
+        <p>{joiningError}</p>
+      </Alert>
+    </div>
+  {:else if socketRoomId}
     <!-- call components -->
     <div class="call_root">
       <div class:show={$isVideoMaximized}>
@@ -30,16 +60,27 @@
       <div>
         <!-- default value of isCallOngoing is true -->
         {#if $isCallOngoing}
-          {#if user}
+          {#if $connectedSessionUser?.name}
             <OnGoingCall />
           {:else}
             <NewUserForm />
           {/if}
         {:else}
           <div class="call_ended_root">
-            <Alert color="red">
-              <span class="font-medium">Call ended</span>
-              <div>Refresh the page to join the call again.</div>
+            <Alert>
+              <div class="flex items-center gap-3">
+                <InfoCircleSolid slot="icon" class="w-4 h-4" />
+                <span class="text-lg font-medium">Call ended</span>
+              </div>
+              <p class="mt-2 mb-4 text-sm">
+                Other party has ended the call. Click Rejoin to start the call
+                again.
+              </p>
+              <div class="flex gap-2">
+                <Button on:click={() => window.location.reload()} outline>
+                  Rejoin
+                </Button>
+              </div>
             </Alert>
           </div>
         {/if}
