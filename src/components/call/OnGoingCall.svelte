@@ -372,9 +372,13 @@
       border-radius: 0;
     }
 
-    .localVideo {
+    .local_video_container {
       width: 100px;
       height: 150px;
+    }
+
+    .current_user_name {
+      font-size: 12px;
     }
   }
 </style>
