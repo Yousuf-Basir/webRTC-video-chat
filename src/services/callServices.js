@@ -75,7 +75,9 @@ export const joinSocketCall = async () => {
     }
 
     handleSocketEvents();
-    initAgora("new_meet_channel");
+    // get channel name from url params
+    const channelName = window.location.pathname.split("/")[1]
+    initAgora(channelName);
 
     getMembers();
   } catch (error) {
