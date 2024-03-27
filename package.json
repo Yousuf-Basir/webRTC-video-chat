@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview --host --port 5173"
+    "preview": "vite preview --host --port 5173",
+    "start:prod": "cd signalling-server && npm start && cd .. && vite preview --host --port 5173"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.4.2",
