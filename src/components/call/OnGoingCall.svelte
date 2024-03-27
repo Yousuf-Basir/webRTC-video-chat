@@ -34,7 +34,7 @@
   const initializePeerConnection = async () => {
     initializingPeerConnection = false;
     // initialize the peer connection
-    $peerConnection = new RTCPeerConnection(peerConnectionConfig);
+    // $peerConnection = new RTCPeerConnection(peerConnectionConfig);
     // get camera and mic from user device
 
     // todo:
