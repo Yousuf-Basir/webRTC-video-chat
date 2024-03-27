@@ -77,6 +77,7 @@ export const joinSocketCall = async () => {
     handleSocketEvents();
     // get channel name from url params
     const channelName = window.location.pathname.split("/")[1]
+    console.log("channelName", channelName)
     initAgora(channelName);
 
     getMembers();

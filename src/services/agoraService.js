@@ -231,7 +231,7 @@ export async function initAgora(channelName) {
       (options.channel = channelName),
       (options.uid = Math.floor(Math.random() * 1000)),
       (options.token =
-        "007eJxTYKg8J6K0PNRyykzxJcnvli+8ujtD4fnBHHG7R8H6H+0+n2BWYLA0NLW0MDU1N05JMjIxNjFJSjYxs0wzMUgyMzM3sjA04XvKnNYQyMgQE6/CysgAgSC+AENeanl8bmpqSXxyRmJeXmoOAwMAoCEiew=="),
+        "007eJxTYFB/9Sneni1PLf2B6lEN6eMlja3/rjz6UWUWXPJtqoji8xIFBktDU0sLU1Nz45QkIxNjE5OkZBMzyzQTgyQzM3MjC0MTYUuWtIZARoZdrIuZGBkgEMQXYsitLMssziyJz01NLYkvyc9OzWNgAADs3yOT"),
       await join();
     if (options.token) {
       console.log("success-alert-with-token and option uid", options.uid);
