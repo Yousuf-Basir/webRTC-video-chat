@@ -11,7 +11,7 @@
     socketInstance,
     socketRoomMembers,
   } from "../../stores/store.js";
-  import { endCall, joinCall } from "../../services/callServices.js";
+  import { endCall, joinCall, joinSocketCall } from "../../services/callServices.js";
   import { Alert, Badge, Button, Spinner } from "flowbite-svelte";
   import { onMount } from "svelte";
   import { peerConnectionConfig } from "../../stores/globalConfig.js";
@@ -36,17 +36,21 @@
     // initialize the peer connection
     $peerConnection = new RTCPeerConnection(peerConnectionConfig);
     // get camera and mic from user device
+
+    // todo:
     $localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true,
     });
 
-    joinCall({
-      peerConnection: $peerConnection,
-      localStream: $localStream,
-      localVideo: $localVideo,
-      remoteVideo: $remoteVideo,
-    });
+    // todo:
+    // joinCall({
+    //   peerConnection: $peerConnection,
+    //   localStream: $localStream,
+    //   localVideo: $localVideo,
+    //   remoteVideo: $remoteVideo,
+    // });
+    joinSocketCall()
   };
 
   const handleEndCall = async () => {
@@ -180,7 +184,10 @@
       {/if}
     </div>
 
-    <video bind:this={$remoteVideo} class="remoteVideo" autoplay playsinline>
+    <video bind:this={$remoteVideo} 
+    class="remoteVideo" 
+    id="remoteVideo" 
+    autoplay playsinline>
       <track kind="captions" />
     </video>
 
@@ -188,6 +195,7 @@
       <video
       bind:this={$localVideo}
       class="localVideo"
+      id="localVideo"
       autoplay
       muted
       playsinline

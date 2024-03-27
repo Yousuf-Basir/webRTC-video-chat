@@ -42,12 +42,13 @@
   };
 
   const handleFormSubmit = () => {
+    console.log("handle form submit")
     const _userName = userName.trim().toLowerCase();
     const userFormData = {
       name: _userName,
     };
     setSessionData("user", JSON.stringify(userFormData));
-
+    console.log("user form dtaa", userFormData);
     // TODO: this same code is also in src/App.svelte. Refactor it to a function
     const socket = get(socketInstance);
     socket.emit("join", { name: _userName }, (error) => {
@@ -129,12 +130,12 @@
           Join call
         </Button>
 
-       {#if joiningError}
+        {#if joiningError}
           <Alert color="red">
             <InfoCircleSolid slot="icon" />
             <p>{joiningError}</p>
           </Alert>
-       {/if}
+        {/if}
       </div>
     </div>
   </div>
