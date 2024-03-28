@@ -1,4 +1,6 @@
 import AgoraRTC from "agora-rtc-sdk-ng";
+import axios from "axios";
+import { SIGNALING_SERVER_URL } from "../stores/globalConfig";
 var client;
 
 const htmlid = document.getElementById("local_video_container");
@@ -246,9 +248,29 @@ async function join() {
   console.log("publish success");
 }
 
+async function getAgoraToken(channelName, uid) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const token = await axios.get(SIGNALING_SERVER_URL+'/generate-agora-token', {
+        params: {
+          channel_name: channelName,
+          uid: uid,
+        }
+      })
+
+      resolve(token.data);
+    } catch(error) {
+      reject(error);
+    }
+  });
+}
+
 export async function initAgora(channelName) {
   // e.preventDefault();
   // $("#join").attr("disabled", true);
+  const uid = Math.floor(Math.random() * 1000);
+  const token = await getAgoraToken(channelName, uid);
+  console.log("Agora token: ", token)
   try {
     client = AgoraRTC.createClient({
       mode: "rtc",
@@ -256,9 +278,10 @@ export async function initAgora(channelName) {
     });
     (options.appid = "915985573db24344bc469f40b6672814"),
       (options.channel = channelName),
-      (options.uid = Math.floor(Math.random() * 1000)),
-      (options.token =
-        "007eJxTYOC7EiFTVOVotoxlyiWtJHumQ0JsT96pCfJ1BHb/dti9WkeBwdLQ1NLC1NTcOCXJyMTYxCQp2cTMMs3EIMnMzNzIwtAkRJw1rSGQkcE0NYyRkQECQXwBhrzU8vjc1NSS+OSMxLy81BwGBgBN6R61"),
+      (options.uid = uid),
+      // (options.token =
+      //   "007eJxTYOC7EiFTVOVotoxlyiWtJHumQ0JsT96pCfJ1BHb/dti9WkeBwdLQ1NLC1NTcOCXJyMTYxCQp2cTMMs3EIMnMzNzIwtAkRJw1rSGQkcE0NYyRkQECQXwBhrzU8vjc1NSS+OSMxLy81BwGBgBN6R61"),
+      (options.token = token);
       await join();
     if (options.token) {
       console.log("success-alert-with-token and option uid", options.uid);
