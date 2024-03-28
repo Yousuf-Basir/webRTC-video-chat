@@ -3,6 +3,7 @@ const http = require('http');
 var cors = require('cors')
 const socketIo = require('socket.io');
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./user');
+const generateAgoraToken = require('./utils/generateAgoraToken');
 
 // create express app
 const app = express();
@@ -81,6 +82,21 @@ io.on('connection', socket => {
 
 app.get("/", (req, res) => {
     res.send("Server running");
+});
+
+app.get("/generate-agora-token", (req, res) => {
+    // get channel_name and uui from url query params
+    const channelName = req.query.channel_name;
+    const uid = req.query.uid;
+
+    if(channelName && uid) {
+        // generate agora token
+        const token = generateAgoraToken(channelName, uid);
+        res.send(token);
+    }
+    else {
+        res.status(400).send("Bad Request. Missing channel_name or uid");
+    }
 });
 
 const PORT = process.env.PORT || 3009;
