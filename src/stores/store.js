@@ -13,6 +13,7 @@ export const peerConnection = writable(null);
 // call states
 export const connectedSessionUser = writable(null);
 export const isCallOngoing = writable(true);
+export const localStreamRunning = writable(true);
 export const isMicOn = writable(true);
 export const isCameraOn = writable(true);
 export const isVideoMaximized = writable(true);

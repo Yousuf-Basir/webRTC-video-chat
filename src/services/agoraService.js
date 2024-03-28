@@ -60,7 +60,34 @@ var localTracks = {
   audioTrack: null,
 };
 
+export function getLocalTracks() {
+  return localTracks;
+}
+
+
+
 var remoteUsers = {};
+
+export async function leave(notifyOther) {
+  var trackName = '';
+  for (trackName in localTracks) {
+    var track = localTracks[trackName];
+    if (track) {
+      track.stop();
+      track.close();
+      localTracks[trackName] = undefined;
+    }
+  }
+
+  // Remove remote users and player views.
+  remoteUsers = {};
+ 
+
+  // leave the channel
+  await client.leave();
+  
+}
+
 
 // async function audioANdVideoTrac() {
 
@@ -231,7 +258,7 @@ export async function initAgora(channelName) {
       (options.channel = channelName),
       (options.uid = Math.floor(Math.random() * 1000)),
       (options.token =
-        "007eJxTYFB/9Sneni1PLf2B6lEN6eMlja3/rjz6UWUWXPJtqoji8xIFBktDU0sLU1Nz45QkIxNjE5OkZBMzyzQTgyQzM3MjC0MTYUuWtIZARoZdrIuZGBkgEMQXYsitLMssziyJz01NLYkvyc9OzWNgAADs3yOT"),
+        "007eJxTYOC7EiFTVOVotoxlyiWtJHumQ0JsT96pCfJ1BHb/dti9WkeBwdLQ1NLC1NTcOCXJyMTYxCQp2cTMMs3EIMnMzNzIwtAkRJw1rSGQkcE0NYyRkQECQXwBhrzU8vjc1NSS+OSMxLy81BwGBgBN6R61"),
       await join();
     if (options.token) {
       console.log("success-alert-with-token and option uid", options.uid);

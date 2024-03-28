@@ -11,7 +11,12 @@
     socketInstance,
     socketRoomMembers,
   } from "../../stores/store.js";
-  import { endCall, joinCall, joinSocketCall } from "../../services/callServices.js";
+  import {
+    endCall,
+    joinCall,
+    joinSocketCall,
+  } from "../../services/callServices.js";
+  import { getLocalTracks, leave } from "../../services/agoraService.js";
   import { Alert, Badge, Button, Spinner } from "flowbite-svelte";
   import { onMount } from "svelte";
   import { peerConnectionConfig } from "../../stores/globalConfig.js";
@@ -28,7 +33,7 @@
   let initializingPeerConnection = true;
   let isWaitingForOther = true;
   let otherMember = null;
-  let currentUser = getSessionDataJson("user")
+  let currentUser = getSessionDataJson("user");
   let timerCount = "00:00:00";
 
   const initializePeerConnection = async () => {
@@ -50,26 +55,35 @@
     //   localVideo: $localVideo,
     //   remoteVideo: $remoteVideo,
     // });
-    joinSocketCall()
+    joinSocketCall();
   };
 
   const handleEndCall = async () => {
-    $localVideo.srcObject = null;
-    $remoteVideo.srcObject = null;
+    // $localVideo.srcObject = null;
+    // $remoteVideo.srcObject = null;
     $localStream.getTracks().forEach((track) => track.stop());
     $isCallOngoing = false;
 
-    endCall();
+    leave();
+
+    endCall(); //notify others by socket event emit
   };
 
   const handleMicToggle = () => {
     $isMicOn = !$isMicOn;
-    $localStream.getAudioTracks()[0].enabled = $isMicOn;
+    // $localStream.getAudioTracks()[0].enabled = $isMicOn;
+    console.log("is mic on", $isMicOn);
+    if (getLocalTracks().audioTrack) {
+      getLocalTracks().audioTrack.setEnabled($isMicOn);
+    }
   };
 
   const handleCameraToggle = () => {
     $isCameraOn = !$isCameraOn;
-    $localStream.getVideoTracks()[0].enabled = $isCameraOn;
+    // $localStream.getVideoTracks()[0].enabled = $isCameraOn;
+    if (getLocalTracks().videoTrack) {
+      getLocalTracks().videoTrack.setEnabled($isCameraOn);
+    }
   };
 
   const handleMaximizeToggle = () => {
@@ -90,11 +104,13 @@
   };
 
   socketRoomMembers.subscribe((members) => {
-    console.log("members", members)
+    console.log("members", members);
     if (members && Array.isArray(members) && members.length > 1) {
       isWaitingForOther = false;
-      
-      otherMember = members.filter(member => currentUser.name !== member.name)[0];
+
+      otherMember = members.filter(
+        (member) => currentUser.name !== member.name
+      )[0];
     } else {
       isWaitingForOther = true;
       otherMember = null;
@@ -119,7 +135,7 @@
       }
       timerCount = `${hours}:${minutes}:${seconds}`;
     }, 1000);
-  }
+  };
 
   onMount(() => {
     initializePeerConnection();
@@ -137,11 +153,11 @@
       <span>Ongoing call</span>
 
       <!-- timer count -->
-    <div>
-      <span color="none" class="timer_count">
-        {timerCount}
-      </span>
-    </div>
+      <div>
+        <span color="none" class="timer_count">
+          {timerCount}
+        </span>
+      </div>
     </div>
 
     <div>
@@ -149,8 +165,6 @@
         <Spinner />
       {/if}
     </div>
-
-    
 
     <div>
       <!-- maximize button -->
@@ -172,9 +186,7 @@
   <div class="video_root">
     {#if isWaitingForOther}
       <div class="waiting_alert">
-        <Alert>
-          Waiting for other party to join the call
-        </Alert>
+        <Alert>Waiting for other party to join the call</Alert>
       </div>
     {/if}
 
@@ -184,26 +196,29 @@
       {/if}
     </div>
 
-    <video bind:this={$remoteVideo} 
-    class="remoteVideo" 
-    id="remoteVideo" 
-    autoplay playsinline>
-      <track kind="captions" />
-    </video>
-
-    <div class="local_video_container">
-      <video
-      bind:this={$localVideo}
-      class="localVideo"
-      id="localVideo"
+    <video
+      bind:this={$remoteVideo}
+      class="remoteVideo"
+      id="remoteVideo"
       autoplay
-      muted
       playsinline
     >
       <track kind="captions" />
     </video>
 
-    <div class="current_user_name">{currentUser?.name}</div>
+    <div class="local_video_container">
+      <video
+        bind:this={$localVideo}
+        class="localVideo"
+        id="localVideo"
+        autoplay
+        muted
+        playsinline
+      >
+        <track kind="captions" />
+      </video>
+
+      <div class="current_user_name">{currentUser?.name}</div>
     </div>
 
     <div class="controls_root">

@@ -6,6 +6,8 @@
     connectedSessionUser,
     isCallOngoing,
     isVideoMaximized,
+    localStream,
+    localStreamRunning,
     socketInstance,
   } from "./stores/store";
   import Chat from "./components/chat/Chat.svelte";
@@ -32,6 +34,18 @@
       window.history.pushState({}, null, `/${socketRoomId}`);
     }
   });
+
+  localStreamRunning.subscribe((value) => {
+    console.log("localStreamRunning", value);
+
+    if(!value) {
+      // replace the url with "/end"
+      $localStream.getTracks().forEach((track) => track.stop());
+    } else {
+      
+    }
+  });
+
 
   const handleReJoin = () => {
     // rebuild the url with room name

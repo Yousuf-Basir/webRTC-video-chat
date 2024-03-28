@@ -5,8 +5,10 @@ import {
   socketInstance,
   isCallOngoing,
   socketRoomMembers,
+  localStream,
+  localStreamRunning,
 } from "../stores/store";
-import { initAgora } from "./agoraService";
+import { initAgora, leave } from "./agoraService";
 
 // function to send message to the signaling server
 const sendMessage = (message) => {
@@ -76,8 +78,8 @@ export const joinSocketCall = async () => {
 
     handleSocketEvents();
     // get channel name from url params
-    const channelName = window.location.pathname.split("/")[1]
-    console.log("channelName", channelName)
+    const channelName = window.location.pathname.split("/")[1];
+    console.log("channelName", channelName);
     initAgora(channelName);
 
     getMembers();
@@ -139,8 +141,6 @@ const handlePeerConnectionSocketEvents = (peerConnection) => {
   });
 };
 
-
-
 const handleSocketEvents = () => {
   const socket = get(socketInstance);
 
@@ -162,6 +162,8 @@ const handleSocketEvents = () => {
   });
 
   socket.on("leave", () => {
+    localStreamRunning.set(false);
+    leave();
     // on remote peer leaving the call, close the call
     isCallOngoing.set(false);
     // close the peer connection
