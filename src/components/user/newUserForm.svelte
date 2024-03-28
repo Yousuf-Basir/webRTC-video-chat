@@ -3,6 +3,7 @@
   import {
     connectedSessionUser,
     localStream,
+    localStreamRunning,
     localVideo,
     socketInstance,
   } from "../../stores/store";
@@ -43,6 +44,8 @@
 
   const handleFormSubmit = () => {
     console.log("handle form submit")
+    localStreamRunning.set(false)
+    alert('joining')
     const _userName = userName.trim().toLowerCase();
     const userFormData = {
       name: _userName,
@@ -51,6 +54,7 @@
     console.log("user form dtaa", userFormData);
     // TODO: this same code is also in src/App.svelte. Refactor it to a function
     const socket = get(socketInstance);
+    
     socket.emit("join", { name: _userName }, (error) => {
       if (error) {
         joiningError = error;

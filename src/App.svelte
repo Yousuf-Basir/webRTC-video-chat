@@ -3,6 +3,7 @@
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
   import { socketRoomId } from "./stores/globalConfig";
   import {
+    callEnded,
     connectedSessionUser,
     isCallOngoing,
     isVideoMaximized,
@@ -26,7 +27,7 @@
   isCallOngoing.subscribe((value) => {
     console.log("isCallOngoing", value);
 
-    if(!value) {
+    if (!value) {
       // replace the url with "/end"
       window.history.pushState({}, null, "/");
     } else {
@@ -38,19 +39,35 @@
   localStreamRunning.subscribe((value) => {
     console.log("localStreamRunning", value);
 
-    if(!value) {
+    if (!value) {
       // replace the url with "/end"
       $localStream.getTracks().forEach((track) => track.stop());
     } else {
-      
     }
   });
 
+  callEnded.subscribe((value) => {
+    console.log("call ended", value);
+
+    if (value) {
+      // replace the url with "/end"
+      const endButtonId = document.getElementById("end-call-button");
+      console.log("end button id", endButtonId);
+
+      if (endButtonId) {
+        // alert("button end");
+        console.log("end button trigger", endButtonId);
+        endButtonId.click();
+      }
+    } else {
+      console.log("button not found.");
+    }
+  });
 
   const handleReJoin = () => {
     // rebuild the url with room name
     window.location.href = `/${socketRoomId}`;
-  }
+  };
 
   onMount(() => {
     var user = getSessionDataJson("user");
@@ -108,11 +125,7 @@
                 again.
               </p>
               <div class="flex gap-2">
-                <Button on:click={() => 
-                  handleReJoin()
-                } outline>
-                  Rejoin
-                </Button>
+                <Button on:click={() => handleReJoin()} outline>Rejoin</Button>
               </div>
             </Alert>
           </div>

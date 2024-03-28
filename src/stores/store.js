@@ -14,6 +14,8 @@ export const peerConnection = writable(null);
 export const connectedSessionUser = writable(null);
 export const isCallOngoing = writable(true);
 export const localStreamRunning = writable(true);
+export const callEnded = writable(false);
+
 export const isMicOn = writable(true);
 export const isCameraOn = writable(true);
 export const isVideoMaximized = writable(true);

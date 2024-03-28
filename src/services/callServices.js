@@ -7,6 +7,7 @@ import {
   socketRoomMembers,
   localStream,
   localStreamRunning,
+  callEnded,
 } from "../stores/store";
 import { initAgora, leave } from "./agoraService";
 
@@ -162,12 +163,21 @@ const handleSocketEvents = () => {
   });
 
   socket.on("leave", () => {
-    localStreamRunning.set(false);
-    leave();
+    // localStreamRunning.set(false);
+    // leave();
     // on remote peer leaving the call, close the call
-    isCallOngoing.set(false);
+    // isCallOngoing.set(false);
+
+    // setTimeout(() => {
+    //   alert('ending call.')
+    //   isCallOngoing.set(false);
+    // }, 3000);
+
     // close the peer connection
     // peerConnection.close();
+
+    callEnded.set(true);
+    
   });
 };
 

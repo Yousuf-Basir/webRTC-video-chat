@@ -65,7 +65,7 @@
     $isCallOngoing = false;
 
     leave();
-
+    
     endCall(); //notify others by socket event emit
   };
 
@@ -243,8 +243,9 @@
       <!-- call end button -->
       <Button
         on:click={handleEndCall}
+        id={'end-call-button'}
         pill={true}
-        class="w-10 h-10 bg-red-600 hover:bg-red-700 active:bg-red-800"
+        class="w-10 h-10 bg-red-600 hover:bg-red-700 active:bg-red-800 end-call-button"
       >
         <CallEnd size={24} color="#ffffff" />
       </Button>
