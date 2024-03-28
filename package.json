@@ -1,0 +1,14 @@
+{
+  "name": "webrtc-video-chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "http-server-spa . index.html 5555"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "http-server-spa": "^1.3.0"
+  }
+}
