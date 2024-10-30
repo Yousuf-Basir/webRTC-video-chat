@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Card, Button, Toggle, Input, Helper } from "flowbite-svelte";
   import { VideoCameraOutline, UserCircleOutline } from "flowbite-svelte-icons";
-  import Logo from "../../assets/logo.png";
+  import Logo from "../../assets/logo.jpeg";
 
   let roomName: string = "";
 
@@ -33,7 +33,7 @@
       <!-- Create Button -->
       <Button on:click={handleSubmit} size="lg" class="w-full bg-gray-600 hover:bg-gray-500">
         <VideoCameraOutline class="w-5 h-5 mr-2" />
-        CREATE ROOM
+        CREATE / JOIN ROOM
       </Button>
     </div>
   </Card>
