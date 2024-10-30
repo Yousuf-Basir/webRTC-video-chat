@@ -4,13 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --host --port 57811",
     "build": "vite build",
-    "preview": "vite preview --host --port 5173"
+    "preview": "vite preview --host --port 57811",
+    
+    "frontend": "vite preview --host --port 57811",
+    "backend": "cd signalling-server && npm start"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.4.2",
     "autoprefixer": "^10.4.14",
+    "concurrently": "^9.0.1",
     "flowbite": "^1.8.1",
     "flowbite-svelte": "^0.44.17",
     "flowbite-svelte-icons": "^0.4.4",
