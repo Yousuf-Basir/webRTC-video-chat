@@ -1,3 +1,4 @@
+export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 export const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL;
 export const STUN_SERVER = import.meta.env.VITE_STUN_SERVER;
 export const TURN_SERVER_URL = import.meta.env.VITE_TURN_SERVER_URL;

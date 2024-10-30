@@ -1,7 +1,7 @@
 <script>
   import { Alert, Button, P } from "flowbite-svelte";
   import OnGoingCall from "./components/call/OnGoingCall.svelte";
-  import { socketRoomId } from "./stores/globalConfig";
+  import { FRONTEND_URL, socketRoomId } from "./stores/globalConfig";
   import {
     connectedSessionUser,
     isCallOngoing,
@@ -124,7 +124,7 @@
   {:else}
     <div class="call_error_root">
       <Alert>
-        <span class="text-lg font-medium">meet.myvisitsonline.com</span>
+        <span class="text-lg font-medium">{FRONTEND_URL}</span>
         <p>Please provide a room ID to join a call.</p>
       </Alert>
     </div>
