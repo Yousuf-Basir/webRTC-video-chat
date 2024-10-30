@@ -18,6 +18,7 @@
   import NewUserForm from "./components/user/newUserForm.svelte";
   import { get } from "svelte/store";
   import { InfoCircleSolid } from "flowbite-svelte-icons";
+  import StartCall from "./components/call/StartCall.svelte";
 
   let joiningError = null;
 
@@ -122,12 +123,13 @@
       </div>
     </div>
   {:else}
-    <div class="call_error_root">
+    <!-- <div class="call_error_root">
       <Alert>
         <span class="text-lg font-medium">{FRONTEND_URL}</span>
         <p>Please provide a room ID to join a call.</p>
       </Alert>
-    </div>
+    </div> -->
+    <StartCall />
   {/if}
 </div>
 
