@@ -2,11 +2,18 @@
   import { Card, Button, Toggle, Input, Helper } from "flowbite-svelte";
   import { VideoCameraOutline, UserCircleOutline } from "flowbite-svelte-icons";
   import Logo from "../../assets/logo.jpeg";
+  import { trackEvent } from "../../analytics";
 
   let roomName: string = "";
 
   function handleSubmit() {
     window.location.href = `/${roomName}`;
+
+    // google analytics custom event tracker
+    trackEvent('button_click', {
+      button_id: 'join-room-btn',
+      category: 'engagement'
+    });
   }
 </script>
 
@@ -31,7 +38,7 @@
       </div>
 
       <!-- Create Button -->
-      <Button on:click={handleSubmit} size="lg" class="w-full bg-gray-600 hover:bg-gray-500">
+      <Button on:click={handleSubmit} size="lg" id="join-room-btn" class="w-full bg-gray-600 hover:bg-gray-500">
         <VideoCameraOutline class="w-5 h-5 mr-2" />
         CREATE / JOIN ROOM
       </Button>

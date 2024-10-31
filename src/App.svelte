@@ -19,6 +19,7 @@
   import { get } from "svelte/store";
   import { InfoCircleSolid } from "flowbite-svelte-icons";
   import StartCall from "./components/call/StartCall.svelte";
+  import { initGA } from "./analytics";
 
   let joiningError = null;
 
@@ -40,6 +41,7 @@
   }
 
   onMount(() => {
+    initGA();
     var user = getSessionDataJson("user");
 
     if (user?.name) {

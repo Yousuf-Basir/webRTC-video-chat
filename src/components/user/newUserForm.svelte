@@ -13,6 +13,7 @@
     setSessionData,
   } from "../../services/sessionStorageServices";
   import { get } from "svelte/store";
+  import { trackEvent } from "../../analytics";
 
   let permissionModal = true;
   let permissionGranted = false;
@@ -58,6 +59,12 @@
       }
       connectedSessionUser.set(userFormData);
       socket.emit("getMembers");
+    });
+
+    // google analytics custom event tracker
+    trackEvent('button_click', {
+      button_id: 'join-room-btn',
+      category: 'engagement'
     });
   };
 
@@ -125,6 +132,7 @@
         <Button
           on:click={handleFormSubmit}
           disabled={!permissionGranted || permissionError || !userName.length}
+          id="join-room-btn"
         >
           Join call
         </Button>
